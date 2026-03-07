@@ -62,4 +62,29 @@ class StorageArquivoModel extends Model
             'max_length' => 'O nome original deve ter no máximo 255 caracteres.',
         ],
     ];
+
+    /**
+     * Restaura um registro excluído logicamente (soft delete).
+     * Define deleted_at = null e status = ativo.
+     *
+     * @return bool true se restaurou, false se não encontrou ou não estava excluído
+     */
+    public function restaurar(int $idArquivo): bool
+    {
+        $registro = $this->withDeleted()->find($idArquivo);
+        if ($registro === null) {
+            return false;
+        }
+        $deletedAt = $registro['deleted_at'] ?? null;
+        $status    = $registro['status'] ?? '';
+        if ($deletedAt === null && $status === 'ativo') {
+            return false; // já está ativo
+        }
+        $this->db->table($this->table)->where($this->primaryKey, $idArquivo)->update([
+            'deleted_at' => null,
+            'status'     => 'ativo',
+        ]);
+
+        return true;
+    }
 }
