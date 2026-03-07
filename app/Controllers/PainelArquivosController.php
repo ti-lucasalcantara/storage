@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\StorageArquivoModel;
+use App\Services\LogSistemaService;
 use App\Services\StorageArquivoService;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -78,7 +79,9 @@ class PainelArquivosController extends BaseController
     {
         try {
             $this->servico->excluirLogicamente($id);
+            $this->registrarLogPainel('Exclusão lógica realizada pelo painel.', 'sucesso', ['arquivo_relacionado' => $id]);
         } catch (\RuntimeException $e) {
+            $this->registrarLogPainel('Falha ao excluir arquivo: ' . $e->getMessage(), 'erro', ['arquivo_relacionado' => $id]);
             return redirect()->back()
                 ->with('erro', $e->getMessage());
         }
@@ -94,6 +97,7 @@ class PainelArquivosController extends BaseController
     {
         $arquivo = $this->modelo->withDeleted()->find($id);
         if ($arquivo === null) {
+            $this->registrarLogPainel('Tentativa de restaurar arquivo inexistente: ' . $id, 'erro');
             return redirect()->back()->with('erro', 'Arquivo não encontrado.');
         }
         $estaExcluido = ! empty($arquivo['deleted_at']) || ($arquivo['status'] ?? '') === 'excluido';
@@ -101,8 +105,10 @@ class PainelArquivosController extends BaseController
             return redirect()->back()->with('erro', 'O arquivo informado não está excluído.');
         }
         if (! $this->modelo->restaurar($id)) {
+            $this->registrarLogPainel('Falha ao restaurar arquivo ' . $id, 'erro', ['arquivo_relacionado' => $id]);
             return redirect()->back()->with('erro', 'Não foi possível restaurar o arquivo.');
         }
+        $this->registrarLogPainel('Arquivo restaurado com sucesso pelo painel.', 'sucesso', ['arquivo_relacionado' => $id]);
 
         return redirect()->back()->with('sucesso', 'Arquivo restaurado com sucesso.');
     }
@@ -195,5 +201,25 @@ class PainelArquivosController extends BaseController
             'qtd_sistemas'  => $qtd_sistemas,
             'qtd_modulos'   => $qtd_modulos,
         ];
+    }
+
+    /**
+     * Registra log de ação do painel (sucesso/erro).
+     *
+     * @param array<string, mixed> $extra
+     */
+    private function registrarLogPainel(string $mensagem, string $tipoLog = 'informacao', array $extra = []): void
+    {
+        try {
+            $service = new LogSistemaService();
+            $service->registrar(array_merge([
+                'origem'   => 'painel',
+                'tipo_log' => $tipoLog,
+                'mensagem' => $mensagem,
+                'ip_origem' => $this->request->getIPAddress(),
+                'user_agent' => $this->request->getUserAgent()->getValue(),
+            ], $extra));
+        } catch (\Throwable $ignored) {
+        }
     }
 }

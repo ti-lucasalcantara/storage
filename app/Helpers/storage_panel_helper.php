@@ -53,3 +53,19 @@ if (! function_exists('badge_status_arquivo')) {
         };
     }
 }
+
+if (! function_exists('badge_tipo_log')) {
+    /**
+     * Retorna classe CSS para badge conforme tipo de log (sucesso, erro, alerta, informacao).
+     */
+    function badge_tipo_log(?string $tipo): string
+    {
+        return match (strtolower((string) $tipo)) {
+            'sucesso'    => 'bg-success',
+            'erro'       => 'bg-danger',
+            'alerta'     => 'bg-warning text-dark',
+            'informacao' => 'bg-info',
+            default      => 'bg-secondary',
+        };
+    }
+}

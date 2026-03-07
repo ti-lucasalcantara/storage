@@ -2,6 +2,7 @@
 
 namespace App\Controllers;
 
+use App\Services\LogSistemaService;
 use App\Services\StorageArquivoService;
 use CodeIgniter\HTTP\ResponseInterface;
 use RuntimeException;
@@ -59,10 +60,11 @@ class ArquivosController extends BaseController
                 201
             );
         } catch (RuntimeException $e) {
+            $this->registrarLogErro($e, 'Upload de arquivo', ['acao' => 'enviar']);
             return $this->responderJson('erro', $e->getMessage(), null, 400);
         } catch (\Throwable $e) {
             log_message('error', 'Erro ao enviar arquivo: ' . $e->getMessage());
-
+            $this->registrarLogErro($e, 'Erro interno ao processar upload', ['acao' => 'enviar']);
             return $this->responderJson(
                 'erro',
                 'Ocorreu um erro interno ao processar o arquivo.',
@@ -94,7 +96,7 @@ class ArquivosController extends BaseController
             return $this->responderJson('sucesso', 'Consulta realizada com sucesso.', $dados, 200);
         } catch (\Throwable $e) {
             log_message('error', 'Erro ao detalhar arquivo: ' . $e->getMessage());
-
+            $this->registrarLogErro($e, 'Erro ao consultar arquivo', ['acao' => 'detalhar', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', 'Ocorreu um erro ao consultar o arquivo.', null, 500);
         }
     }
@@ -115,11 +117,11 @@ class ArquivosController extends BaseController
             $info = $this->servico->baixarArquivo($idArquivo);
         } catch (RuntimeException $e) {
             $codigo = str_contains($e->getMessage(), 'não encontrado') ? 404 : 400;
-
+            $this->registrarLogErro($e, 'Download de arquivo', ['acao' => 'download', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', $e->getMessage(), null, $codigo);
         } catch (\Throwable $e) {
             log_message('error', 'Erro no download: ' . $e->getMessage());
-
+            $this->registrarLogErro($e, 'Erro ao preparar download', ['acao' => 'download', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', 'Ocorreu um erro ao preparar o download.', null, 500);
         }
 
@@ -147,10 +149,11 @@ class ArquivosController extends BaseController
 
             return $this->responderJson('sucesso', 'Arquivo excluído com sucesso.', null, 200);
         } catch (RuntimeException $e) {
+            $this->registrarLogErro($e, 'Exclusão lógica de arquivo', ['acao' => 'excluir', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', $e->getMessage(), null, 404);
         } catch (\Throwable $e) {
             log_message('error', 'Erro ao excluir arquivo: ' . $e->getMessage());
-
+            $this->registrarLogErro($e, 'Erro ao excluir arquivo', ['acao' => 'excluir', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', 'Ocorreu um erro ao excluir o arquivo.', null, 500);
         }
     }
@@ -182,5 +185,27 @@ class ArquivosController extends BaseController
         $nome = str_replace(["\0", '"', "\r", "\n"], '', $nome);
 
         return $nome === '' ? 'download' : $nome;
+    }
+
+    /**
+     * Registra erro/exceção no log do sistema sem interromper a resposta.
+     *
+     * @param array<string, mixed> $extra
+     */
+    private function registrarLogErro(\Throwable $e, string $mensagem, array $extra = []): void
+    {
+        try {
+            $service = new LogSistemaService();
+            $arquivoId = $extra['arquivo_relacionado'] ?? null;
+            unset($extra['arquivo_relacionado']);
+            $service->registrarExcecao($e, $mensagem, 'api', array_merge($extra, [
+                'arquivo_relacionado' => $arquivoId,
+                'endpoint'            => $this->request->getUri()->getPath(),
+                'metodo_http'         => $this->request->getMethod(),
+                'ip_origem'           => $this->request->getIPAddress(),
+            ]));
+        } catch (\Throwable $ignored) {
+            // Não falhar a requisição por falha no log
+        }
     }
 }

@@ -96,6 +96,9 @@ $menuAtivo = $menuAtivo ?? 'arquivos';
                 <a class="nav-link <?= $menuAtivo === 'arquivos' ? 'active' : '' ?>" href="<?= site_url('painel/arquivos') ?>">
                     <i class="fas fa-list"></i> Listagem de arquivos
                 </a>
+                <a class="nav-link <?= $menuAtivo === 'logs' ? 'active' : '' ?>" href="<?= site_url('painel/logs') ?>">
+                    <i class="fas fa-clipboard-list"></i> Logs
+                </a>
             </nav>
         </div>
         <div class="conteudo-painel">

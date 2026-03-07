@@ -20,11 +20,9 @@ class Filters extends BaseFilters
      * make reading things nicer and simpler.
      *
      * @var array<string, class-string|list<class-string>>
-     *
-     * [filter_name => classname]
-     * or [filter_name => [classname1, classname2, ...]]
      */
     public array $aliases = [
+        'logapi'         => \App\Filters\LogApiFilter::class,
         'csrf'          => CSRF::class,
         'toolbar'       => DebugToolbar::class,
         'honeypot'      => Honeypot::class,
@@ -106,5 +104,13 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [];
+    /**
+     * Log da API: registra requisição e resposta dos endpoints de arquivos.
+     */
+    public array $filters = [
+        'logapi' => [
+            'before' => ['arquivos', 'arquivos/*'],
+            'after'  => ['arquivos', 'arquivos/*'],
+        ],
+    ];
 }

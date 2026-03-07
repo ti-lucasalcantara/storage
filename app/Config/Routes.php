@@ -16,6 +16,9 @@ $routes->get('painel/arquivos/(:num)', 'PainelArquivosController::detalhar/$1');
 $routes->post('painel/arquivos/(:num)/excluir', 'PainelArquivosController::excluir/$1');
 $routes->post('painel/arquivos/(:num)/restaurar', 'PainelArquivosController::restaurar/$1');
 
+$routes->get('painel/logs', 'PainelLogsController::index');
+$routes->get('painel/logs/(:num)', 'PainelLogsController::detalhar/$1');
+
 // API de Arquivos (rotas em português)
 $routes->post('arquivos', 'ArquivosController::enviar');
 $routes->get('arquivos/(:num)/download', 'ArquivosController::download/$1');
