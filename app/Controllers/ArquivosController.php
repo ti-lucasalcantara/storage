@@ -9,7 +9,7 @@ use RuntimeException;
 
 /**
  * Controller da API de Storage de Arquivos.
- * Todas as operações de arquivo passam por aqui; não há acesso direto pela web.
+ * Todas as operacoes de arquivo passam por aqui; nao ha acesso direto pela web.
  */
 class ArquivosController extends BaseController
 {
@@ -29,23 +29,25 @@ class ArquivosController extends BaseController
         $arquivo = $this->request->getFile('arquivo');
 
         if ($arquivo === null || ! $arquivo->isValid()) {
-            return $this->responderJson('erro', 'Nenhum arquivo enviado ou arquivo inválido.', null, 400);
+            return $this->responderJson('erro', 'Nenhum arquivo enviado ou arquivo invalido.', null, 400);
         }
 
+        $ambiente = $this->request->getPost('ambiente');
         $sistema = $this->request->getPost('sistema');
-        $modulo  = $this->request->getPost('modulo');
+        $modulo = $this->request->getPost('modulo');
 
-        if (empty($sistema) || empty($modulo)) {
-            return $this->responderJson('erro', 'Os campos sistema e módulo são obrigatórios.', null, 400);
+        if (empty($ambiente) || empty($sistema) || empty($modulo)) {
+            return $this->responderJson('erro', 'Os campos ambiente, sistema e modulo sao obrigatorios.', null, 400);
         }
 
         $metadados = [
-            'sistema'        => $sistema,
-            'modulo'         => $modulo,
-            'tipo_entidade'  => $this->request->getPost('tipo_entidade'),
-            'id_entidade'    => $this->request->getPost('id_entidade'),
-            'categoria'      => $this->request->getPost('categoria'),
-            'enviado_por'    => $this->request->getPost('enviado_por'),
+            'ambiente' => $ambiente,
+            'sistema' => $sistema,
+            'modulo' => $modulo,
+            'tipo_entidade' => $this->request->getPost('tipo_entidade'),
+            'id_entidade' => $this->request->getPost('id_entidade'),
+            'categoria' => $this->request->getPost('categoria'),
+            'enviado_por' => $this->request->getPost('enviado_por'),
         ];
 
         $ipOrigem = $this->request->getIPAddress();
@@ -83,14 +85,14 @@ class ArquivosController extends BaseController
         $idArquivo = (int) $id;
 
         if ($idArquivo <= 0) {
-            return $this->responderJson('erro', 'ID do arquivo inválido.', null, 400);
+            return $this->responderJson('erro', 'ID do arquivo invalido.', null, 400);
         }
 
         try {
             $dados = $this->servico->obterMetadados($idArquivo);
 
             if ($dados === null) {
-                return $this->responderJson('erro', 'Arquivo não encontrado.', null, 404);
+                return $this->responderJson('erro', 'Arquivo nao encontrado.', null, 404);
             }
 
             return $this->responderJson('sucesso', 'Consulta realizada com sucesso.', $dados, 200);
@@ -103,20 +105,20 @@ class ArquivosController extends BaseController
 
     /**
      * GET /arquivos/{id}/download
-     * Envia o arquivo para download; o nome exibido é o nome original.
+     * Envia o arquivo para download; o nome exibido e o nome original.
      */
     public function download(string $id): ResponseInterface
     {
         $idArquivo = (int) $id;
 
         if ($idArquivo <= 0) {
-            return $this->responderJson('erro', 'ID do arquivo inválido.', null, 400);
+            return $this->responderJson('erro', 'ID do arquivo invalido.', null, 400);
         }
 
         try {
             $info = $this->servico->baixarArquivo($idArquivo);
         } catch (RuntimeException $e) {
-            $codigo = str_contains($e->getMessage(), 'não encontrado') ? 404 : 400;
+            $codigo = str_contains($e->getMessage(), 'nao encontrado') ? 404 : 400;
             $this->registrarLogErro($e, 'Download de arquivo', ['acao' => 'download', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', $e->getMessage(), null, $codigo);
         } catch (\Throwable $e) {
@@ -134,22 +136,22 @@ class ArquivosController extends BaseController
 
     /**
      * DELETE /arquivos/{id}
-     * Exclusão lógica: marca status como excluído e preenche deleted_at.
+     * Exclusao logica: marca status como excluido e preenche deleted_at.
      */
     public function excluir(string $id): ResponseInterface
     {
         $idArquivo = (int) $id;
 
         if ($idArquivo <= 0) {
-            return $this->responderJson('erro', 'ID do arquivo inválido.', null, 400);
+            return $this->responderJson('erro', 'ID do arquivo invalido.', null, 400);
         }
 
         try {
             $this->servico->excluirLogicamente($idArquivo);
 
-            return $this->responderJson('sucesso', 'Arquivo excluído com sucesso.', null, 200);
+            return $this->responderJson('sucesso', 'Arquivo excluido com sucesso.', null, 200);
         } catch (RuntimeException $e) {
-            $this->registrarLogErro($e, 'Exclusão lógica de arquivo', ['acao' => 'excluir', 'arquivo_relacionado' => $idArquivo]);
+            $this->registrarLogErro($e, 'Exclusao logica de arquivo', ['acao' => 'excluir', 'arquivo_relacionado' => $idArquivo]);
             return $this->responderJson('erro', $e->getMessage(), null, 404);
         } catch (\Throwable $e) {
             log_message('error', 'Erro ao excluir arquivo: ' . $e->getMessage());
@@ -159,16 +161,16 @@ class ArquivosController extends BaseController
     }
 
     /**
-     * Formata resposta JSON padrão da API.
+     * Formata resposta JSON padrao da API.
      *
      * @param array<string, mixed>|null $dados
      */
     private function responderJson(string $status, string $mensagem, ?array $dados, int $codigoHttp = 200): ResponseInterface
     {
         $resposta = [
-            'status'   => $status,
+            'status' => $status,
             'mensagem' => $mensagem,
-            'dados'    => $dados ?? (object) [],
+            'dados' => $dados ?? (object) [],
         ];
 
         return $this->response
@@ -188,7 +190,7 @@ class ArquivosController extends BaseController
     }
 
     /**
-     * Registra erro/exceção no log do sistema sem interromper a resposta.
+     * Registra erro/execao no log do sistema sem interromper a resposta.
      *
      * @param array<string, mixed> $extra
      */
@@ -200,12 +202,12 @@ class ArquivosController extends BaseController
             unset($extra['arquivo_relacionado']);
             $service->registrarExcecao($e, $mensagem, 'api', array_merge($extra, [
                 'arquivo_relacionado' => $arquivoId,
-                'endpoint'            => $this->request->getUri()->getPath(),
-                'metodo_http'         => $this->request->getMethod(),
-                'ip_origem'           => $this->request->getIPAddress(),
+                'endpoint' => $this->request->getUri()->getPath(),
+                'metodo_http' => $this->request->getMethod(),
+                'ip_origem' => $this->request->getIPAddress(),
             ]));
         } catch (\Throwable $ignored) {
-            // Não falhar a requisição por falha no log
+            // Nao falhar a requisicao por falha no log.
         }
     }
 }

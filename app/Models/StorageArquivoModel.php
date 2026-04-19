@@ -21,6 +21,7 @@ class StorageArquivoModel extends Model
     protected $updatedField     = 'updated_at';
 
     protected $allowedFields = [
+        'ambiente',
         'sistema',
         'modulo',
         'tipo_entidade',
@@ -39,6 +40,7 @@ class StorageArquivoModel extends Model
     ];
 
     protected $validationRules = [
+        'ambiente'       => 'required|in_list[PROD,TESTES]',
         'sistema'        => 'required|max_length[50]',
         'modulo'         => 'required|max_length[100]',
         'nome_original'  => 'required|max_length[255]',
@@ -49,6 +51,10 @@ class StorageArquivoModel extends Model
     ];
 
     protected $validationMessages = [
+        'ambiente' => [
+            'required' => 'O campo ambiente e obrigatorio.',
+            'in_list'  => 'O ambiente deve ser PROD ou TESTES.',
+        ],
         'sistema' => [
             'required' => 'O campo sistema é obrigatório.',
             'max_length' => 'O sistema deve ter no máximo 50 caracteres.',

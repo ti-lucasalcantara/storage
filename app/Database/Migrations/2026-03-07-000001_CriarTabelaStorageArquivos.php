@@ -19,6 +19,12 @@ class CriarTabelaStorageArquivos extends Migration
                 'unsigned'       => true,
                 'auto_increment' => true,
             ],
+            'ambiente' => [
+                'type'       => 'VARCHAR',
+                'constraint' => 20,
+                'null'       => false,
+                'default'    => 'PROD',
+            ],
             'sistema' => [
                 'type'       => 'VARCHAR',
                 'constraint' => 50,

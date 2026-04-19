@@ -1,0 +1,104 @@
+{
+    "decimal": ",",
+    "thousands": ".",
+    "emptyTable": "Nenhum registro encontrado",
+    "info": "Mostrando de _START_ até _END_ de _TOTAL_ registros",
+    "infoEmpty": "Mostrando 0 até 0 de 0 registros",
+    "infoFiltered": "(filtrado de _MAX_ registros no total)",
+    "infoPostFix": "",
+    "lengthMenu": "Mostrar _MENU_ registros",
+    "loadingRecords": "Carregando...",
+    "processing": "Processando...",
+    "search": "Buscar:",
+    "searchPlaceholder": "Digite para buscar...",
+    "zeroRecords": "Nenhum registro encontrado",
+    "paginate": {
+        "first": "Primeiro",
+        "last": "Último",
+        "next": "Próximo",
+        "previous": "Anterior"
+    },
+    "aria": {
+        "orderable": "Ordenar por esta coluna",
+        "orderableReverse": "Ordenar de forma inversa por esta coluna"
+    },
+    "select": {
+        "rows": {
+            "_": "%d linhas selecionadas",
+            "0": "Nenhuma linha selecionada",
+            "1": "1 linha selecionada"
+        }
+    },
+    "buttons": {
+        "copy": "Copiar",
+        "copyTitle": "Copiado para a área de transferência",
+        "copySuccess": {
+            "_": "%d linhas copiadas",
+            "1": "1 linha copiada"
+        },
+        "print": "Imprimir",
+        "colvis": "Colunas",
+        "excel": "Exportar para Excel",
+        "csv": "Exportar CSV",
+        "pdf": "Exportar PDF"
+    },
+    "autoFill": {
+        "cancel": "Cancelar",
+        "fill": "Preencher todas as células com",
+        "fillHorizontal": "Preencher células horizontalmente",
+        "fillVertical": "Preencher células verticalmente"
+    },
+    "searchBuilder": {
+        "add": "Adicionar condição",
+        "button": {
+            "_": "Construtor de busca (%d)",
+            "0": "Construtor de busca"
+        },
+        "clearAll": "Limpar tudo",
+        "condition": "Condição",
+        "conditions": {
+            "date": {
+                "after": "Depois",
+                "before": "Antes",
+                "between": "Entre",
+                "empty": "Vazio",
+                "equals": "Igual",
+                "not": "Diferente",
+                "notBetween": "Não está entre",
+                "notEmpty": "Não vazio"
+            },
+            "number": {
+                "between": "Entre",
+                "empty": "Vazio",
+                "equals": "Igual",
+                "gt": "Maior que",
+                "gte": "Maior ou igual",
+                "lt": "Menor que",
+                "lte": "Menor ou igual",
+                "not": "Diferente",
+                "notBetween": "Não está entre",
+                "notEmpty": "Não vazio"
+            },
+            "string": {
+                "contains": "Contém",
+                "empty": "Vazio",
+                "endsWith": "Termina com",
+                "equals": "Igual",
+                "not": "Diferente",
+                "notEmpty": "Não vazio",
+                "startsWith": "Começa com"
+            }
+        },
+        "data": "Coluna",
+        "deleteTitle": "Remover regra",
+        "leftTitle": "Remover condição externa",
+        "logicAnd": "E",
+        "logicOr": "Ou",
+        "rightTitle": "Adicionar condição externa",
+        "title": {
+            "_": "Construtor de busca (%d)",
+            "0": "Construtor de busca"
+        },
+        "value": "Valor"
+    }
+}
