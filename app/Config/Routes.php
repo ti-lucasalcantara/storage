@@ -8,7 +8,7 @@ use CodeIgniter\Router\RouteCollection;
  * Rotas da API de Storage de Arquivos (microserviço central de arquivos).
  * Acesso aos arquivos somente via estas rotas; não há acesso direto pela web.
  */
-$routes->get('/', 'PainelArquivosController::index', ['as' => 'home.index']);
+$routes->get('/', 'PainelArquivosController::index', ['as' => 'home.index', 'filter' => 'auth']);
 
 // SSO
 $routes->get('login', 'Auth::login', ['as' => 'login']);
