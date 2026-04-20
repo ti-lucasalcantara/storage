@@ -110,11 +110,14 @@
 <?= $this->endSection() ?>
 
 <?= $this->section('conteudo') ?>
-<?php $estaExcluido = ($arquivo['status'] ?? '') === 'excluido' || ! empty($arquivo['deleted_at']); ?>
+<?php
+$estaExcluido = ($arquivo['status'] ?? '') === 'excluido' || ! empty($arquivo['deleted_at']);
+$voltarUrl = $voltarUrl ?? site_url('painel/arquivos');
+?>
 
 <section class="painel-cabecalho">
     <div>
-        <a href="<?= site_url('painel/arquivos') ?>" class="btn btn-outline-secondary btn-sm">Voltar</a>
+        <a href="<?= esc($voltarUrl) ?>" class="btn btn-outline-secondary btn-sm">Voltar</a>
         <h1>Detalhes do arquivo</h1>
         <p>Visualize metadados, origem, armazenamento e informações de auditoria.</p>
     </div>
@@ -189,7 +192,7 @@
 </div>
 
 <div class="voltar-wrap">
-    <a href="<?= site_url('painel/arquivos') ?>" class="btn btn-outline-secondary btn-sm">Voltar para listagem</a>
+    <a href="<?= esc($voltarUrl) ?>" class="btn btn-outline-secondary btn-sm">Voltar para listagem</a>
 </div>
 
 <div class="modal fade" id="modalRestaurarDetalhe" tabindex="-1" aria-labelledby="modalRestaurarDetalheLabel" aria-hidden="true">

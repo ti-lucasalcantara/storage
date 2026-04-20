@@ -113,6 +113,34 @@ $menuAtivo = $menuAtivo ?? 'arquivos';
             color: var(--azul-principal);
         }
 
+        .painel-submenu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            margin: -0.1rem 1.15rem 0.6rem 3.6rem;
+            padding-left: 0.25rem;
+            border-left: 2px solid #e2e8f0;
+        }
+
+        .painel-submenu-link {
+            color: var(--texto-secundario);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 10px;
+        }
+
+        .painel-submenu-link:hover {
+            background: #f5f8fc;
+            color: var(--azul-principal);
+        }
+
+        .painel-submenu-link.active {
+            background: var(--fundo-ativo);
+            color: var(--azul-principal);
+        }
+
         .painel-main {
             flex: 1;
             min-width: 0;
@@ -215,10 +243,16 @@ $menuAtivo = $menuAtivo ?? 'arquivos';
         <aside class="painel-sidebar-shell">
             <div class="collapse d-lg-block" id="sidebarCol">
                 <nav class="painel-sidebar nav flex-column">
-                    <a class="nav-link <?= $menuAtivo === 'arquivos' ? 'active' : '' ?>" href="<?= site_url('painel/arquivos') ?>">
+                    <?php $arquivosAtivo = in_array($menuAtivo, ['arquivos', 'arquivos_prod', 'arquivos_testes'], true); ?>
+                    <a class="nav-link <?= $arquivosAtivo ? 'active' : '' ?>" href="<?= site_url('painel/arquivos') ?>">
                         <i class="fas fa-folder-open"></i>
                         <span>Arquivos</span>
                     </a>
+                    <div class="painel-submenu">
+                        <a class="painel-submenu-link <?= $menuAtivo === 'arquivos' ? 'active' : '' ?>" href="<?= site_url('painel/arquivos') ?>">Todos</a>
+                        <a class="painel-submenu-link <?= $menuAtivo === 'arquivos_prod' ? 'active' : '' ?>" href="<?= site_url('painel/arquivos/prod') ?>">PROD</a>
+                        <a class="painel-submenu-link <?= $menuAtivo === 'arquivos_testes' ? 'active' : '' ?>" href="<?= site_url('painel/arquivos/testes') ?>">TESTES</a>
+                    </div>
                     <a class="nav-link <?= $menuAtivo === 'logs' ? 'active' : '' ?>" href="<?= site_url('painel/logs') ?>">
                         <i class="fas fa-table-list"></i>
                         <span>Logs</span>

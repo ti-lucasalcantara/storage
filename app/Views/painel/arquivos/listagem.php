@@ -407,8 +407,12 @@
 
 <?= $this->section('conteudo') ?>
 <?php
+$cabecalhoTitulo = $titulo ?? 'Arquivos';
+$subtitulo = $subtitulo ?? 'Consulte e gerencie os arquivos armazenados no sistema.';
+$urlBase = $urlBase ?? site_url('painel/arquivos');
 $filtrosAtivos = [];
 foreach ([
+    'ambiente' => 'Ambiente',
     'id_arquivo' => 'ID',
     'sistema' => 'Sistema',
     'modulo' => 'Módulo',
@@ -428,8 +432,8 @@ foreach ([
 ?>
 
 <section class="painel-cabecalho">
-    <h1>Arquivos</h1>
-    <p>Consulte e gerencie os arquivos armazenados no sistema.</p>
+    <h1><?= esc($cabecalhoTitulo) ?></h1>
+    <p><?= esc($subtitulo) ?></p>
 </section>
 
 <div class="resumo-grid">
@@ -475,8 +479,18 @@ foreach ([
             </div>
         <?php endif ?>
 
-        <form method="get" action="<?= site_url('painel/arquivos') ?>" id="formFiltros">
+        <form method="get" action="<?= esc($urlBase) ?>" id="formFiltros">
             <div class="filtros-grid filtros-grid-top">
+                <?php if (empty($filtros['ambiente'])): ?>
+                    <div class="filtro-grupo">
+                        <label>Ambiente</label>
+                        <select name="ambiente" class="form-select">
+                            <option value="">Todos</option>
+                            <option value="PROD" <?= ($filtros['ambiente'] ?? '') === 'PROD' ? 'selected' : '' ?>>PROD</option>
+                            <option value="TESTES" <?= ($filtros['ambiente'] ?? '') === 'TESTES' ? 'selected' : '' ?>>TESTES</option>
+                        </select>
+                    </div>
+                <?php endif ?>
                 <div class="filtro-grupo">
                     <label>ID</label>
                     <input type="number" name="id_arquivo" class="form-control" value="<?= esc($filtros['id_arquivo'] ?? '') ?>" min="1">
@@ -571,6 +585,7 @@ foreach ([
                 <thead>
                     <tr>
                         <th class="col-id">ID</th>
+                        <th>Ambiente</th>
                         <th>Sistema</th>
                         <th>Módulo</th>
                         <th class="col-nome">Arquivo</th>
@@ -588,6 +603,7 @@ foreach ([
                         $statusAtual = strtolower((string) ($arq['status'] ?? ''));
                     ?>
                         <tr data-busca="<?= esc(strtolower(implode(' ', [
+                            $arq['ambiente'] ?? '',
                             $arq['nome_original'] ?? '',
                             $arq['sistema'] ?? '',
                             $arq['modulo'] ?? '',
@@ -596,6 +612,7 @@ foreach ([
                             $arq['id_entidade'] ?? '',
                         ]))) ?>" data-status="<?= esc($statusAtual) ?>">
                             <td class="col-id"><?= (int) $arq['id_arquivo'] ?></td>
+                            <td><?= esc($arq['ambiente'] ?? 'â€”') ?></td>
                             <td><?= esc($arq['sistema']) ?></td>
                             <td><?= esc($arq['modulo']) ?></td>
                             <td class="col-nome">

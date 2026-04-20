@@ -18,6 +18,8 @@ $routes->get('auth', 'Auth::sso');
 // Painel administrativo de Storage (web)
 $routes->group('painel', ['namespace' => 'App\Controllers', 'filter' => 'auth'], static function ($routes) {
     $routes->get('arquivos', 'PainelArquivosController::index');
+    $routes->get('arquivos/prod', 'PainelArquivosController::indexProd');
+    $routes->get('arquivos/testes', 'PainelArquivosController::indexTestes');
     $routes->get('arquivos/(:num)', 'PainelArquivosController::detalhar/$1');
     $routes->post('arquivos/(:num)/excluir', 'PainelArquivosController::excluir/$1');
     $routes->post('arquivos/(:num)/restaurar', 'PainelArquivosController::restaurar/$1');

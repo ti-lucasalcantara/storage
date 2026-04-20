@@ -29,9 +29,37 @@ class PainelArquivosController extends BaseController
      */
     public function index(): ResponseInterface
     {
+        return $this->renderizarListagem();
+    }
+
+    /**
+     * Listagem de arquivos do ambiente PROD.
+     */
+    public function indexProd(): ResponseInterface
+    {
+        return $this->renderizarListagem('PROD');
+    }
+
+    /**
+     * Listagem de arquivos do ambiente TESTES.
+     */
+    public function indexTestes(): ResponseInterface
+    {
+        return $this->renderizarListagem('TESTES');
+    }
+
+    /**
+     * Listagem de arquivos com filtro opcional por ambiente.
+     */
+    private function renderizarListagem(?string $ambiente = null): ResponseInterface
+    {
         helper('storage_panel');
 
         $filtros = $this->obterFiltrosDaRequisicao();
+        if ($ambiente !== null) {
+            $filtros['ambiente'] = $ambiente;
+        }
+
         $builder = $this->modelo->withDeleted()->orderBy('id_arquivo', 'DESC');
 
         $this->aplicarFiltros($builder, $filtros);
@@ -40,15 +68,23 @@ class PainelArquivosController extends BaseController
         $arquivos  = $builder->paginate($porPagina);
         $pager     = $this->modelo->pager;
 
-        $resumo = $this->calcularResumo();
+        $resumo = $this->calcularResumo($ambiente);
+
+        [$titulo, $descricao, $menuAtivo, $urlBase] = match ($ambiente) {
+            'PROD' => ['Arquivos do ambiente PROD', 'Consulte e gerencie os arquivos armazenados no ambiente de produção.', 'arquivos_prod', site_url('painel/arquivos/prod')],
+            'TESTES' => ['Arquivos do ambiente TESTES', 'Consulte e gerencie os arquivos armazenados no ambiente de testes.', 'arquivos_testes', site_url('painel/arquivos/testes')],
+            default => ['Listagem de Arquivos', 'Consulte e gerencie os arquivos armazenados no sistema.', 'arquivos', site_url('painel/arquivos')],
+        };
 
         return $this->response->setBody(view('painel/arquivos/listagem', [
-            'titulo'     => 'Listagem de Arquivos',
-            'menuAtivo'  => 'arquivos',
+            'titulo'     => $titulo,
+            'subtitulo'  => $descricao,
+            'menuAtivo'  => $menuAtivo,
             'arquivos'   => $arquivos,
             'pager'      => $pager,
             'filtros'    => $filtros,
             'resumo'     => $resumo,
+            'urlBase'    => $urlBase,
         ]));
     }
 
@@ -67,8 +103,9 @@ class PainelArquivosController extends BaseController
 
         return $this->response->setBody(view('painel/arquivos/detalhes', [
             'titulo'    => 'Detalhes do Arquivo',
-            'menuAtivo' => 'arquivos',
+            'menuAtivo' => $this->resolverMenuAtivoPorAmbiente($arquivo['ambiente'] ?? null),
             'arquivo'   => $arquivo,
+            'voltarUrl' => $this->resolverUrlListagemPorAmbiente($arquivo['ambiente'] ?? null),
         ]));
     }
 
@@ -120,6 +157,7 @@ class PainelArquivosController extends BaseController
     {
         $request = $this->request;
         return [
+            'ambiente'       => $request->getGet('ambiente'),
             'id_arquivo'     => $request->getGet('id_arquivo'),
             'sistema'        => $request->getGet('sistema'),
             'modulo'         => $request->getGet('modulo'),
@@ -138,6 +176,9 @@ class PainelArquivosController extends BaseController
      */
     private function aplicarFiltros($builder, array $filtros): void
     {
+        if (! empty($filtros['ambiente'])) {
+            $builder->where('ambiente', strtoupper((string) $filtros['ambiente']));
+        }
         if (! empty($filtros['id_arquivo'])) {
             $builder->where('id_arquivo', (int) $filtros['id_arquivo']);
         }
@@ -173,24 +214,24 @@ class PainelArquivosController extends BaseController
     /**
      * @return array{total: int, ativos: int, excluidos: int, tamanho_total: int, qtd_sistemas: int, qtd_modulos: int}
      */
-    private function calcularResumo(): array
+    private function calcularResumo(?string $ambiente = null): array
     {
         $db = $this->modelo->db;
 
-        $total = (int) $db->table($this->modelo->table)->where('deleted_at', null)->countAllResults(false);
+        $total = (int) $this->novoBuilderResumo($db, $ambiente)->where('deleted_at', null)->countAllResults(false);
 
-        $ativos = (int) $db->table($this->modelo->table)->where('status', 'ativo')->where('deleted_at', null)->countAllResults(false);
+        $ativos = (int) $this->novoBuilderResumo($db, $ambiente)->where('status', 'ativo')->where('deleted_at', null)->countAllResults(false);
 
-        $totalComDeleted = (int) $db->table($this->modelo->table)->countAllResults(false);
+        $totalComDeleted = (int) $this->novoBuilderResumo($db, $ambiente)->countAllResults(false);
         $excluidos = $totalComDeleted - $total;
 
-        $tamanho = $db->table($this->modelo->table)->selectSum('tamanho_bytes')->where('deleted_at', null)->get()->getRow();
+        $tamanho = $this->novoBuilderResumo($db, $ambiente)->selectSum('tamanho_bytes')->where('deleted_at', null)->get()->getRow();
         $tamanho_total = (int) ($tamanho->tamanho_bytes ?? 0);
 
-        $sistemas = $db->table($this->modelo->table)->select('sistema')->distinct()->where('deleted_at', null)->get()->getResultArray();
+        $sistemas = $this->novoBuilderResumo($db, $ambiente)->select('sistema')->distinct()->where('deleted_at', null)->get()->getResultArray();
         $qtd_sistemas = count($sistemas);
 
-        $modulos = $db->table($this->modelo->table)->select('modulo')->distinct()->where('deleted_at', null)->get()->getResultArray();
+        $modulos = $this->novoBuilderResumo($db, $ambiente)->select('modulo')->distinct()->where('deleted_at', null)->get()->getResultArray();
         $qtd_modulos = count($modulos);
 
         return [
@@ -201,6 +242,34 @@ class PainelArquivosController extends BaseController
             'qtd_sistemas'  => $qtd_sistemas,
             'qtd_modulos'   => $qtd_modulos,
         ];
+    }
+
+    private function novoBuilderResumo($db, ?string $ambiente = null)
+    {
+        $builder = $db->table($this->modelo->table);
+        if ($ambiente !== null) {
+            $builder->where('ambiente', $ambiente);
+        }
+
+        return $builder;
+    }
+
+    private function resolverMenuAtivoPorAmbiente(?string $ambiente): string
+    {
+        return match (strtoupper((string) $ambiente)) {
+            'PROD' => 'arquivos_prod',
+            'TESTES' => 'arquivos_testes',
+            default => 'arquivos',
+        };
+    }
+
+    private function resolverUrlListagemPorAmbiente(?string $ambiente): string
+    {
+        return match (strtoupper((string) $ambiente)) {
+            'PROD' => site_url('painel/arquivos/prod'),
+            'TESTES' => site_url('painel/arquivos/testes'),
+            default => site_url('painel/arquivos'),
+        };
     }
 
     /**
